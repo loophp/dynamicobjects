@@ -1,0 +1,36 @@
+{
+    "name": "drupol/dynamicobjects",
+    "description": "Create dynamic objects.",
+    "license": "GPL",
+    "authors": [
+        {
+            "name": "Pol Dellaiera",
+            "email": "pol.dellaiera@protonmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0" 
+    },
+    "autoload": {
+        "psr-4": {
+            "drupol\\DynamicObjects\\": "src/"
+        }
+    },
+    "require-dev": {
+        "phpro/grumphp": "^0.12",
+        "phpspec/phpspec": "^3.0",
+        "squizlabs/php_codesniffer": "^3.0",
+        "leanphp/phpspec-code-coverage": "^3.1",
+        "scrutinizer/ocular": "^1.4",
+        "phpmd/phpmd": "^2.6",
+        "sebastian/phpcpd": "^3.0",
+        "sensiolabs/security-checker": "^4.1"
+    },
+    "config": {
+        "bin-dir": "bin"
+    },
+    "scripts": {
+        "grumphp": "./bin/grumphp run",
+        "scrutinizer": "./bin/ocular code-coverage:upload --format=php-clover build/coverage.xml"
+    }
+}
