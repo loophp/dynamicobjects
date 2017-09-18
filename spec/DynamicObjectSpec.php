@@ -26,6 +26,10 @@ class DynamicObjectSpec extends ObjectBehavior
         $this::hasDynamicProperty('fake')->shouldBe(FALSE);
     }
 
+    public function it_can_return_appropriate_values_for_a_property() {
+        $this::getDynamicProperty('undefined')->shouldBeNull();
+    }
+
     public function it_can_clear_dynamic_properties() {
         $this::addDynamicProperty('hello', 'world');
         $this::hasDynamicProperty('hello')->shouldBe(TRUE);
@@ -48,6 +52,10 @@ class DynamicObjectSpec extends ObjectBehavior
     public function it_can_detect_if_a_dynamic_method_has_been_added() {
         $this->fake = function() {return 'method';};
         $this::hasDynamicMethod('fake')->shouldBe(FALSE);
+    }
+
+    public function it_can_return_appropriate_values_for_a_method() {
+        $this->shouldThrow(new \BadMethodCallException(sprintf('Undefined method: %s().', 'undefinedMethod')))->during('undefinedMethod');
     }
 
     public function it_can_clear_dynamic_methods() {

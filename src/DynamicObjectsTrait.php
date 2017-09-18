@@ -147,11 +147,10 @@ trait DynamicObjectsTrait
     public function __call($method, array $parameters = array())
     {
         if (static::hasDynamicMethod($method)) {
-            return call_user_func_array(
-                static::getDynamicMethod($method)->bindTo($this, get_called_class()),
-                $parameters
-            );
+            return static::getDynamicMethod($method)->bindTo($this, get_called_class())->__invoke($parameters);
         }
+
+        throw new \BadMethodCallException(sprintf('Undefined method: %s().', $method));
     }
 
     /**
