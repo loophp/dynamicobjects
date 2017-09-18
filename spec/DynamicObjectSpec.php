@@ -76,4 +76,20 @@ class DynamicObjectSpec extends ObjectBehavior
         $this::addDynamicProperty('hello', function() {return 'world';});
         $this->hello->shouldBe('world');
     }
+
+    public function it_can_memoize_dynamic_property() {
+      $this::addDynamicProperty('hello', function() {sleep(1); return microtime();}, true);
+      $this->hello->shouldBe($this->hello);
+
+      $this::addDynamicProperty('hello', function() {sleep(1); return microtime();}, false);
+      $this->hello->shouldNotBe($this->hello);
+    }
+
+    public function it_can_memoize_dynamic_method() {
+      $this::addDynamicMethod('hello', function() {sleep(1); return microtime();}, true);
+      $this->hello()->shouldBe($this->hello());
+
+      $this::addDynamicMethod('hello', function() {sleep(1); return microtime();}, false);
+      $this->hello()->shouldNotBe($this->hello());
+    }
 }

@@ -20,16 +20,27 @@ trait DynamicObjectsTrait
     protected static $dynamicProperties = array();
 
     /**
+     * @var array
+     */
+    protected static $cache = array();
+
+    /**
      * Add a dynamic property.
      *
      * @param string $name
      *   The property name.
      * @param mixed $value
      *   The property value.
+     * @param bool $memoize
+     *   Memoize parameter.
      */
-    public static function addDynamicProperty($name, $value)
+    public static function addDynamicProperty($name, $value, $memoize = false)
     {
-        static::$dynamicProperties[get_called_class()][$name] = $value;
+        static::$dynamicProperties[get_called_class()][$name] = [
+          'name' => $name,
+          'factory' => $value,
+          'memoize' => $memoize,
+        ];
     }
 
     /**
@@ -39,10 +50,16 @@ trait DynamicObjectsTrait
      *   The method name.
      * @param \Closure $func
      *   The method.
+     * @param bool $memoize
+     *   Memoize parameter.
      */
-    public static function addDynamicMethod($name, \Closure $func)
+    public static function addDynamicMethod($name, \Closure $func, $memoize = false)
     {
-        static::$dynamicMethods[get_called_class()][$name] = $func;
+        static::$dynamicMethods[get_called_class()][$name] = [
+          'name' => $name,
+          'factory' => $func,
+          'memoize' => $memoize,
+        ];
     }
 
     /**
@@ -146,7 +163,22 @@ trait DynamicObjectsTrait
     public function __call($method, array $parameters = array())
     {
         if (static::hasDynamicMethod($method)) {
-            return static::getDynamicMethod($method)->bindTo($this, get_called_class())->__invoke($parameters);
+            $data = static::getDynamicMethod($method);
+            $cacheid = sha1(serialize(func_get_args()));
+
+            if (true === $data['memoize']) {
+                if (isset(static::$cache[$cacheid])) {
+                    return static::$cache[$cacheid];
+                }
+            }
+
+            $result = call_user_func_array($data['factory']->bindTo($this, $this), $parameters);
+
+            if (true === $data['memoize']) {
+                static::$cache[$cacheid] = $result;
+            }
+
+            return $result;
         }
 
         throw new \BadMethodCallException(sprintf('Undefined method: %s().', $method));
@@ -168,16 +200,27 @@ trait DynamicObjectsTrait
     public function __get($property)
     {
         if (static::hasDynamicProperty($property)) {
-            $value = static::getDynamicProperty($property);
+            $data = static::getDynamicProperty($property);
 
-            if (is_callable($value)) {
-                $value = call_user_func_array(
-                    $value->bindTo($this, get_called_class()),
-                    []
-                );
+            if (is_callable($data['factory'])) {
+                $cacheid = sha1(serialize(func_get_args()));
+
+                if (true == $data['memoize']) {
+                    if (isset(static::$cache[$cacheid])) {
+                        return static::$cache[$cacheid];
+                    }
+                }
+
+                $result = call_user_func($data['factory']->bindTo($this, $this));
+
+                if (true == $data['memoize']) {
+                    static::$cache[$cacheid] = $result;
+                }
+
+                return $result;
             }
 
-            return $value;
+            return $data['factory'];
         }
 
         throw new \DomainException(sprintf('Undefined property: %s().', $property));

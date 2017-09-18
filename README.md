@@ -11,6 +11,11 @@
 
 Create dynamic properties and methods on a PHP object.
 
+## Features
+
+* Can be used as object or as a trait,
+* Can memoize methods results and/or properties if they are callable.
+
 ## Installation
 
 `composer require drupol/dynamicobjects
@@ -59,6 +64,32 @@ $myObject::addDynamicMethod('sayHelloWorld', function() {echo "Hello world!";});
 $myObject->sayHelloWorld(); // Hello world!
 ```
 
+Memoization:
+
+```php
+<?php
+
+include 'vendor/autoload.php';
+
+use drupol\DynamicObjects\DynamicObjectsTrait;
+
+class myObject {
+    use DynamicObjectsTrait;
+}
+
+$myObject = new myObject();
+
+$object::addDynamicMethod('sleep', function($second = 5) {
+  sleep($second);
+  return true; // The function must return something to get the memoization working.
+  }, true); // Set the last parameter to true to enable the memoization.
+
+$object->sleep(); // The first one will stay 5 seconds...
+$object->sleep(); // Others will be executed directory...
+$object->sleep();
+$object->sleep();
+```
+
 ## API
 
 DynamicObjects provides a PHP trait and an Object depending on it.
@@ -75,8 +106,10 @@ It exposes the following static methods:
  *   The property name.
  * @param mixed $value
  *   The property value.
+ * @param bool $memoize
+ *   Memoize parameter.
  */
-DynamicObjectsTrait::addDynamicProperty($name, $value);
+DynamicObjectsTrait::addDynamicProperty($name, $value, $memoize = false);
 ```
 ```php
 /**
@@ -86,8 +119,10 @@ DynamicObjectsTrait::addDynamicProperty($name, $value);
  *   The method name.
  * @param \Closure $func
  *   The method.
+ * @param bool $memoize
+ *   Memoize parameter.
  */
-DynamicObjectsTrait::addDynamicMethod($name, $func);
+DynamicObjectsTrait::addDynamicMethod($name, $func, $memoize = false);
 ```
 ```php
 /**
