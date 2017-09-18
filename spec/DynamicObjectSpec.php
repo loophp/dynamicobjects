@@ -26,8 +26,9 @@ class DynamicObjectSpec extends ObjectBehavior
         $this::hasDynamicProperty('fake')->shouldBe(FALSE);
     }
 
-    public function it_can_return_appropriate_values_for_a_property() {
+    public function it_can_return_appropriate_values_for_an_undefined_property() {
         $this::getDynamicProperty('undefined')->shouldBeNull();
+        $this->shouldThrow(new \DomainException(sprintf('Undefined property: %s().', 'undefinedProperty')))->during('__get', ['undefinedProperty']);
     }
 
     public function it_can_clear_dynamic_properties() {

@@ -180,5 +180,7 @@ trait DynamicObjectsTrait
 
             return $value;
         }
+
+        throw new \DomainException(sprintf('Undefined property: %s().', $property));
     }
 }
