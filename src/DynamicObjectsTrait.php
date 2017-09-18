@@ -26,7 +26,6 @@ trait DynamicObjectsTrait
      *   The property name.
      * @param mixed $value
      *   The property value.
-     *
      */
     public static function addDynamicProperty($name, $value)
     {
