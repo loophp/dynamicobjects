@@ -2,6 +2,9 @@
 
 namespace drupol\DynamicObjects;
 
+use Psr\SimpleCache\CacheInterface;
+use Symfony\Component\Cache\Simple\ArrayCache;
+
 /**
  * Trait DynamicObjectsTrait.
  *
@@ -20,9 +23,9 @@ trait DynamicObjectsTrait
     protected static $dynamicProperties = array();
 
     /**
-     * @var array
+     * @var CacheInterface
      */
-    protected static $cache = array();
+    protected static $cache;
 
     /**
      * Add a dynamic property.
@@ -116,7 +119,7 @@ trait DynamicObjectsTrait
     public static function getDynamicMethod($name)
     {
         return ( static::hasDynamicMethod($name) ) ?
-            static::$dynamicMethods[get_called_class()][$name] : null;
+          static::$dynamicMethods[get_called_class()][$name] : null;
     }
 
     /**
@@ -158,24 +161,60 @@ trait DynamicObjectsTrait
     }
 
     /**
-     * {inheritdoc}
+     * Set the cache.
+     *
+     * @param \Psr\SimpleCache\CacheInterface $cache
+     */
+    public static function setDynamicObjectCacheProvider(CacheInterface $cache)
+    {
+        self::$cache = $cache;
+    }
+
+    /**
+     * Get the cache.
+     *
+     * @return \Psr\SimpleCache\CacheInterface
+     */
+    public static function getDynamicObjectCacheProvider()
+    {
+        if (!isset(self::$cache)) {
+            self::setDynamicObjectCacheProvider(new ArrayCache());
+        }
+
+        return self::$cache;
+    }
+
+    /**
+     * Clear the cache.
+     */
+    public static function clearDynamicObjectCache()
+    {
+        self::getDynamicObjectCacheProvider()->clear();
+    }
+
+    /**
+     * @param $method
+     * @param array $parameters
+     *
+     * @return mixed
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function __call($method, array $parameters = array())
     {
         if (static::hasDynamicMethod($method)) {
             $data = static::getDynamicMethod($method);
-            $cacheid = sha1(serialize(func_get_args()));
+            $cacheid = sha1(get_called_class() . serialize(func_get_args()));
 
             if (true === $data['memoize']) {
-                if (isset(static::$cache[$cacheid])) {
-                    return static::$cache[$cacheid];
+                if ($result = self::getDynamicObjectCacheProvider()->get($cacheid)) {
+                    return $result;
                 }
             }
 
             $result = call_user_func_array($data['factory']->bindTo($this, $this), $parameters);
 
             if (true === $data['memoize']) {
-                static::$cache[$cacheid] = $result;
+                self::getDynamicObjectCacheProvider()->set($cacheid, $result);
             }
 
             return $result;
@@ -203,18 +242,18 @@ trait DynamicObjectsTrait
             $data = static::getDynamicProperty($property);
 
             if (is_callable($data['factory'])) {
-                $cacheid = sha1(serialize(func_get_args()));
+                $cacheid = sha1(get_called_class() . serialize(func_get_args()));
 
                 if (true == $data['memoize']) {
-                    if (isset(static::$cache[$cacheid])) {
-                        return static::$cache[$cacheid];
+                    if ($result = self::getDynamicObjectCacheProvider()->get($cacheid)) {
+                        return $result;
                     }
                 }
 
                 $result = call_user_func($data['factory']->bindTo($this, $this));
 
-                if (true == $data['memoize']) {
-                    static::$cache[$cacheid] = $result;
+                if (true === $data['memoize']) {
+                    self::getDynamicObjectCacheProvider()->set($cacheid, $result);
                 }
 
                 return $result;

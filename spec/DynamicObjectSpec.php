@@ -5,6 +5,8 @@ namespace spec\drupol\DynamicObjects;
 use drupol\DynamicObjects\DynamicObject;
 use drupol\DynamicObjects\test\TestObjectParent;
 use PhpSpec\ObjectBehavior;
+use Psr\SimpleCache\CacheInterface;
+use Symfony\Component\Cache\Simple\ArrayCache;
 
 class DynamicObjectSpec extends ObjectBehavior
 {
@@ -78,18 +80,33 @@ class DynamicObjectSpec extends ObjectBehavior
     }
 
     public function it_can_memoize_dynamic_property() {
-      $this::addDynamicProperty('hello', function() {sleep(1); return microtime();}, true);
-      $this->hello->shouldBe($this->hello);
+        $this::addDynamicProperty('hello', function() {sleep(1); return microtime();}, true);
+        $this->hello->shouldBe($this->hello);
 
-      $this::addDynamicProperty('hello', function() {sleep(1); return microtime();}, false);
-      $this->hello->shouldNotBe($this->hello);
+        $this::addDynamicProperty('hello', function() {sleep(1); return microtime();}, false);
+        $this->hello->shouldNotBe($this->hello);
     }
 
     public function it_can_memoize_dynamic_method() {
-      $this::addDynamicMethod('hello', function() {sleep(1); return microtime();}, true);
-      $this->hello()->shouldBe($this->hello());
+        $this::addDynamicMethod('hello', function() {sleep(1); return microtime();}, true);
+        $this->hello()->shouldBe($this->hello());
 
-      $this::addDynamicMethod('hello', function() {sleep(1); return microtime();}, false);
-      $this->hello()->shouldNotBe($this->hello());
+        $this::addDynamicMethod('hello', function() {sleep(1); return microtime();}, false);
+        $this->hello()->shouldNotBe($this->hello());
+    }
+
+    public function it_can_create_and_use_a_cache_object(CacheInterface $cache) {
+        $this::setDynamicObjectCacheProvider($cache);
+        $this::getDynamicObjectCacheProvider()->shouldImplement('Psr\SimpleCache\CacheInterface');
+        $this::getDynamicObjectCacheProvider()->shouldBe($cache);
+    }
+
+    public function it_can_clear_the_cache() {
+        $cache = new ArrayCache();
+        $this::setDynamicObjectCacheProvider($cache);
+        $this::getDynamicObjectCacheProvider()->set('foo', 'bar');
+        $this::getDynamicObjectCacheProvider()->get('foo')->shouldBe('bar');
+        $this::clearDynamicObjectCache();
+        $this::getDynamicObjectCacheProvider()->get('foo')->shouldBeNull();
     }
 }

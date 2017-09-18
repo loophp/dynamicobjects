@@ -14,7 +14,8 @@ Create dynamic properties and methods on a PHP object.
 ## Features
 
 * Can be used as object or as a trait,
-* Can memoize methods results and/or properties if they are callable.
+* Can memoize methods results and/or properties if they are callable,
+* The caching object use CacheInterface and can be injected.
 
 ## Installation
 
@@ -84,9 +85,9 @@ $object::addDynamicMethod('sleep', function($second = 5) {
   return true; // The function must return something to get the memoization working.
   }, true); // Set the last parameter to true to enable the memoization.
 
-$object->sleep(); // The first one will stay 5 seconds...
-$object->sleep(); // Others will be executed directory...
-$object->sleep();
+$object->sleep(); // The first execution will be executed and will last 5 seconds.
+$object->sleep(); // The next executions, if arguments and method are the same will not be executed
+$object->sleep(); // and only the result of the function will be returned.
 $object->sleep();
 ```
 
@@ -198,6 +199,29 @@ DynamicObjectsTrait::clearDynamicProperties();
  */
 DynamicObjectsTrait::clearDynamicMethods();
 ```
+```php
+/**
+ * Set the cache.
+ *
+ * @param \Psr\SimpleCache\CacheInterface $cache
+ */
+DynamicObjectsTrait::setDynamicObjectCacheProvider(CacheInterface $cache);
+```
+```php
+/**
+ * Get the cache.
+ *
+ * @return \Psr\SimpleCache\CacheInterface
+ */
+DynamicObjectsTrait::getDynamicObjectCacheProvider();
+```
+```php
+/**
+ * Clear the cache.
+ */
+DynamicObjectsTrait::clearDynamicObjectCache()
+```
+
 
 ## Contributing
 
