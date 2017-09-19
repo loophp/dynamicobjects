@@ -80,15 +80,15 @@ class myObject {
 
 $myObject = new myObject();
 
-$object::addDynamicMethod('sleep', function($second = 5) {
+$myObject::addDynamicMethod('sleep', function($second = 5) {
   sleep($second);
   return true; // The function must return something to get the memoization working.
   }, true); // Set the last parameter to true to enable the memoization.
 
-$object->sleep(); // The first execution will be executed and will last 5 seconds.
-$object->sleep(); // The next executions, if arguments and method are the same will not be executed
-$object->sleep(); // and only the result of the function will be returned.
-$object->sleep();
+$myObject->sleep(); // The first execution will be executed and will last 5 seconds.
+$myObject->sleep(); // The next executions, if arguments and method are the same will not be executed
+$myObject->sleep(); // and only the result of the function will be returned.
+$myObject->sleep();
 ```
 
 ## API

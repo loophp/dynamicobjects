@@ -193,6 +193,38 @@ trait DynamicObjectsTrait
     }
 
     /**
+     * Execute a closure.
+     *
+     * @param \Closure $func
+     *   The closure.
+     * @param array $parameters
+     *   The closure's parameters.
+     * @param bool $memoize
+     *   The memoize parameter.
+     *
+     * @return mixed|null
+     *   The return of the closure.
+     */
+    private function request(\Closure $func, array $parameters = [], $memoize = false)
+    {
+        $cacheid = spl_object_hash($func);
+
+        if (true === $memoize) {
+            if ($cache = self::getDynamicObjectCacheProvider()->get($cacheid)) {
+                return $cache;
+            }
+        }
+
+        $result = call_user_func_array($func->bindTo($this, $this), $parameters);
+
+        if (true === $memoize) {
+            self::getDynamicObjectCacheProvider()->set($cacheid, $result);
+        }
+
+        return $result;
+    }
+
+    /**
      * @param $method
      * @param array $parameters
      *
@@ -203,34 +235,10 @@ trait DynamicObjectsTrait
     {
         if (static::hasDynamicMethod($method)) {
             $data = static::getDynamicMethod($method);
-            $cacheid = sha1(get_called_class() . serialize(func_get_args()));
-
-            if (true === $data['memoize']) {
-                if ($result = self::getDynamicObjectCacheProvider()->get($cacheid)) {
-                    return $result;
-                }
-            }
-
-            $result = call_user_func_array($data['factory']->bindTo($this, $this), $parameters);
-
-            if (true === $data['memoize']) {
-                self::getDynamicObjectCacheProvider()->set($cacheid, $result);
-            }
-
-            return $result;
+            return $this->request($data['factory'], $parameters, $data['memoize']);
         }
 
         throw new \BadMethodCallException(sprintf('Undefined method: %s().', $method));
-    }
-
-    /**
-     * {inheritdoc}
-     */
-    public function __set($property, $value)
-    {
-        if (static::hasDynamicProperty($property)) {
-            static::addDynamicProperty($property, $value);
-        }
     }
 
     /**
@@ -241,27 +249,24 @@ trait DynamicObjectsTrait
         if (static::hasDynamicProperty($property)) {
             $data = static::getDynamicProperty($property);
 
+            $return = $data['factory'];
             if (is_callable($data['factory'])) {
-                $cacheid = sha1(get_called_class() . serialize(func_get_args()));
-
-                if (true == $data['memoize']) {
-                    if ($result = self::getDynamicObjectCacheProvider()->get($cacheid)) {
-                        return $result;
-                    }
-                }
-
-                $result = call_user_func($data['factory']->bindTo($this, $this));
-
-                if (true === $data['memoize']) {
-                    self::getDynamicObjectCacheProvider()->set($cacheid, $result);
-                }
-
-                return $result;
+                $return = $this->request($data['factory'], [], $data['memoize']);
             }
 
-            return $data['factory'];
+            return $return;
         }
 
         throw new \DomainException(sprintf('Undefined property: %s().', $property));
+    }
+
+    /**
+     * {inheritdoc}
+     */
+    public function __set($property, $value)
+    {
+        if (static::hasDynamicProperty($property)) {
+            static::addDynamicProperty($property, $value);
+        }
     }
 }
