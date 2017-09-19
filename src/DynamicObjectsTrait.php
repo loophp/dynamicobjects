@@ -2,8 +2,7 @@
 
 namespace drupol\DynamicObjects;
 
-use Psr\SimpleCache\CacheInterface;
-use Symfony\Component\Cache\Simple\ArrayCache;
+use drupol\Memoize\MemoizeTrait;
 
 /**
  * Trait DynamicObjectsTrait.
@@ -12,6 +11,8 @@ use Symfony\Component\Cache\Simple\ArrayCache;
  */
 trait DynamicObjectsTrait
 {
+    use MemoizeTrait;
+
     /**
      * @var array
      */
@@ -21,11 +22,6 @@ trait DynamicObjectsTrait
      * @var array
      */
     protected static $dynamicProperties = array();
-
-    /**
-     * @var CacheInterface
-     */
-    protected static $cache;
 
     /**
      * Add a dynamic property.
@@ -161,38 +157,6 @@ trait DynamicObjectsTrait
     }
 
     /**
-     * Set the cache.
-     *
-     * @param \Psr\SimpleCache\CacheInterface $cache
-     */
-    public static function setDynamicObjectCacheProvider(CacheInterface $cache)
-    {
-        self::$cache = $cache;
-    }
-
-    /**
-     * Get the cache.
-     *
-     * @return \Psr\SimpleCache\CacheInterface
-     */
-    public static function getDynamicObjectCacheProvider()
-    {
-        if (!(self::$cache instanceof CacheInterface)) {
-            self::setDynamicObjectCacheProvider(new ArrayCache());
-        }
-
-        return self::$cache;
-    }
-
-    /**
-     * Clear the cache.
-     */
-    public static function clearDynamicObjectCache()
-    {
-        self::getDynamicObjectCacheProvider()->clear();
-    }
-
-    /**
      * Execute a closure.
      *
      * @param \Closure $func
@@ -209,21 +173,15 @@ trait DynamicObjectsTrait
      */
     public function doDynamicRequest(\Closure $func, array $parameters = [], $memoize = false)
     {
-        $cacheid = spl_object_hash($func).sha1(json_encode($parameters));
-
-        if (($cache = self::getDynamicObjectCacheProvider()) && true === $memoize) {
-            if ($cache = $cache->get($cacheid)) {
-                return $cache;
-            }
+        if (!class_exists('\drupol\Memoize\Memoize')) {
+            $memoize = false;
         }
 
-        $result = call_user_func_array($func, $parameters);
-
-        if (($cache = self::getDynamicObjectCacheProvider()) && true === $memoize) {
-            self::getDynamicObjectCacheProvider()->set($cacheid, $result);
+        if (true === $memoize) {
+            return $this->memoize($func, $parameters);
         }
 
-        return $result;
+        return call_user_func_array($func, $parameters);
     }
 
     /**

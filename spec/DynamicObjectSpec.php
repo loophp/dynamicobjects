@@ -94,19 +94,4 @@ class DynamicObjectSpec extends ObjectBehavior
         $this::addDynamicMethod('hello', function() {sleep(1); return microtime();}, false);
         $this->hello()->shouldNotBe($this->hello());
     }
-
-    public function it_can_create_and_use_a_cache_object(CacheInterface $cache) {
-        $this::setDynamicObjectCacheProvider($cache);
-        $this::getDynamicObjectCacheProvider()->shouldImplement('Psr\SimpleCache\CacheInterface');
-        $this::getDynamicObjectCacheProvider()->shouldBe($cache);
-    }
-
-    public function it_can_clear_the_cache() {
-        $cache = new ArrayCache();
-        $this::setDynamicObjectCacheProvider($cache);
-        $this::getDynamicObjectCacheProvider()->set('foo', 'bar');
-        $this::getDynamicObjectCacheProvider()->get('foo')->shouldBe('bar');
-        $this::clearDynamicObjectCache();
-        $this::getDynamicObjectCacheProvider()->get('foo')->shouldBeNull();
-    }
 }
