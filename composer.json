@@ -6,7 +6,7 @@
     "keywords": ["dynamic methods", "dynamic properties"],
     "support": {
         "source": "https://github.com/drupol/dynamicobjects",
-        "forum": "https://github.com/drupol/dynamicobjects/issue",
+        "forum": "https://github.com/drupol/dynamicobjects/issues",
         "irc": "irc://irc.freenode.org/php"
     },
     "authors": [{
