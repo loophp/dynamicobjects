@@ -9,7 +9,7 @@
 
 ## Description
 
-Create dynamic properties and methods on a PHP object.
+Create and manage dynamic properties and methods on a PHP object.
 
 ## Features
 
@@ -19,8 +19,8 @@ Create dynamic properties and methods on a PHP object.
 
 ## Installation
 
-`composer require drupol/dynamicobjects
-`
+`composer require drupol/dynamicobjects`
+
 ## Usage
 
 Using the object:
