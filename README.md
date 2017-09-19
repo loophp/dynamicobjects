@@ -13,13 +13,23 @@ Create and manage dynamic properties and methods on a PHP object.
 
 ## Features
 
-* Can be used as object or as a trait,
+* Can be used by extending the DynamicObject object or as a trait, on a real or anonymous class,
 * Can memoize methods results and/or properties if they are callable,
 * The caching object use CacheInterface and can be injected.
+
+## Requirements
+
+* PHP >= 5.6
 
 ## Installation
 
 `composer require drupol/dynamicobjects`
+
+## Optional
+
+To enable memoization you will need an extra package.
+
+`composer require drupol/memoize`
 
 ## Usage
 
@@ -30,11 +40,8 @@ Using the object:
 
 include 'vendor/autoload.php';
 
-class myObject extends \drupol\DynamicObjects\DynamicObject {
-
-}
-
-$myObject = new myObject();
+// Anonymous classes creation is only available to PHP >= 7.
+$myObject = new class extends \drupol\DynamicObjects\DynamicObject {};
 
 $myObject::addDynamicProperty('name', 'DynamicObjects');
 echo $myObject->name; // DynamicObjects
@@ -52,11 +59,10 @@ include 'vendor/autoload.php';
 
 use drupol\DynamicObjects\DynamicObjectsTrait;
 
-class myObject {
+// Anonymous classes creation is only available to PHP >= 7.
+$myObject = new class {
     use DynamicObjectsTrait;
-}
-
-$myObject = new myObject();
+};
 
 $myObject::addDynamicProperty('name', 'DynamicObjects');
 echo $myObject->name; // DynamicObjects
@@ -74,11 +80,10 @@ include 'vendor/autoload.php';
 
 use drupol\DynamicObjects\DynamicObjectsTrait;
 
-class myObject {
+// Anonymous classes creation is only available to PHP >= 7.
+$myObject = new class {
     use DynamicObjectsTrait;
-}
-
-$myObject = new myObject();
+};
 
 $myObject::addDynamicMethod('sleep', function($second = 5) {
   sleep($second);
