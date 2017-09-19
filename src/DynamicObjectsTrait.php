@@ -178,7 +178,9 @@ trait DynamicObjectsTrait
     public static function getDynamicObjectCacheProvider()
     {
         if (!isset(self::$cache)) {
-            self::setDynamicObjectCacheProvider(new ArrayCache());
+            if (class_exists('\Symfony\Component\Cache\Simple\ArrayCache')) {
+                self::setDynamicObjectCacheProvider(new ArrayCache());
+            }
         }
 
         return self::$cache;
@@ -205,19 +207,19 @@ trait DynamicObjectsTrait
      * @return mixed|null
      *   The return of the closure.
      */
-    private function request(\Closure $func, array $parameters = [], $memoize = false)
+    public function doDynamicRequest(\Closure $func, array $parameters = [], $memoize = false)
     {
         $cacheid = spl_object_hash($func);
 
-        if (true === $memoize) {
+        if (true === $memoize && self::getDynamicObjectCacheProvider() instanceof CacheInterface) {
             if ($cache = self::getDynamicObjectCacheProvider()->get($cacheid)) {
                 return $cache;
             }
         }
 
-        $result = call_user_func_array($func->bindTo($this, $this), $parameters);
+        $result = call_user_func_array($func, $parameters);
 
-        if (true === $memoize) {
+        if (true === $memoize && self::getDynamicObjectCacheProvider() instanceof CacheInterface) {
             self::getDynamicObjectCacheProvider()->set($cacheid, $result);
         }
 
@@ -235,7 +237,7 @@ trait DynamicObjectsTrait
     {
         if (static::hasDynamicMethod($method)) {
             $data = static::getDynamicMethod($method);
-            return $this->request($data['factory'], $parameters, $data['memoize']);
+            return $this->doDynamicRequest($data['factory'], $parameters, $data['memoize']);
         }
 
         throw new \BadMethodCallException(sprintf('Undefined method: %s().', $method));
@@ -251,7 +253,7 @@ trait DynamicObjectsTrait
 
             $return = $data['factory'];
             if (is_callable($data['factory'])) {
-                $return = $this->request($data['factory'], [], $data['memoize']);
+                $return = $this->doDynamicRequest($data['factory'], [], $data['memoize']);
             }
 
             return $return;
