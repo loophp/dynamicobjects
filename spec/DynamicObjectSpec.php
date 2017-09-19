@@ -94,4 +94,8 @@ class DynamicObjectSpec extends ObjectBehavior
         $this::addDynamicMethod('hello', function() {sleep(1); return microtime();}, false);
         $this->hello()->shouldNotBe($this->hello());
     }
+
+    public function it_can_create_an_anonymous_class() {
+        $this::createDynamicClass()->shouldBeAnInstanceOf('\drupol\DynamicObjects\DynamicObject');
+    }
 }
