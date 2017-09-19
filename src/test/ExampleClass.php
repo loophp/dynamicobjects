@@ -24,11 +24,13 @@ class ExampleClass
         return 'protectedMethod';
     }
 
-    public function renderProperties() {
+    public function renderProperties()
+    {
         return $this->publicProperty . $this->privateProperty . $this->protectedProperty;
     }
 
-    public function renderMethods() {
+    public function renderMethods()
+    {
         return $this->publicMethod() . $this->privateMethod() . $this->protectedMethod();
     }
 }

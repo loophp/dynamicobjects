@@ -92,10 +92,4 @@ class DynamicObjectSpec extends ObjectBehavior
         $this::addDynamicMethod('hello', function() {sleep(1); return microtime();}, false);
         $this->hello()->shouldNotBe($this->hello());
     }
-
-    public function it_can_convert_a_class_into_an_anonymous_class() {
-        $class = new ExampleClass();
-        $this::convertToAnonymous($class)->renderProperties()->shouldBe($class->renderProperties());
-        $this::convertToAnonymous($class)->renderMethods()->shouldBe($class->renderMethods());
-    }
 }
