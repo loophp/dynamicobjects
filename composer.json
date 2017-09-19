@@ -32,13 +32,11 @@
         "phpmd/phpmd": "^2.6",
         "sebastian/phpcpd": "^3.0",
         "sensiolabs/security-checker": "^4.1",
-        "drupol/memoize": "^1.0"
+        "drupol/memoize": "^1.0",
+        "fetzi/phpspec-watcher": "^1.0"
     },
     "suggest": {
         "drupol/memoize": "DynamicObjects requires this package to get memoization working."
-    },
-    "config": {
-        "bin-dir": "bin"
     },
     "scripts": {
         "phpspec": "./bin/phpspec run",

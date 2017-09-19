@@ -3,10 +3,8 @@
 namespace spec\drupol\DynamicObjects;
 
 use drupol\DynamicObjects\DynamicObject;
-use drupol\DynamicObjects\test\TestObjectParent;
+use drupol\DynamicObjects\test\ExampleClass;
 use PhpSpec\ObjectBehavior;
-use Psr\SimpleCache\CacheInterface;
-use Symfony\Component\Cache\Simple\ArrayCache;
 
 class DynamicObjectSpec extends ObjectBehavior
 {
@@ -29,8 +27,8 @@ class DynamicObjectSpec extends ObjectBehavior
     }
 
     public function it_can_return_appropriate_values_for_an_undefined_property() {
-        $this::getDynamicProperty('undefined')->shouldBeNull();
-        $this->shouldThrow(new \DomainException(sprintf('Undefined property: %s().', 'undefinedProperty')))->during('__get', ['undefinedProperty']);
+        $this::getDynamicProperty('undefinedProperty')->shouldBeNull();
+        $this->shouldThrow(new \DomainException(sprintf('Undefined property: %s.', 'undefinedProperty')))->during('__get', ['undefinedProperty']);
     }
 
     public function it_can_clear_dynamic_properties() {
@@ -93,5 +91,11 @@ class DynamicObjectSpec extends ObjectBehavior
 
         $this::addDynamicMethod('hello', function() {sleep(1); return microtime();}, false);
         $this->hello()->shouldNotBe($this->hello());
+    }
+
+    public function it_can_convert_a_class_into_an_anonymous_class() {
+        $class = new ExampleClass();
+        $this::convertToAnonymous($class)->renderProperties()->shouldBe($class->renderProperties());
+        $this::convertToAnonymous($class)->renderMethods()->shouldBe($class->renderMethods());
     }
 }
