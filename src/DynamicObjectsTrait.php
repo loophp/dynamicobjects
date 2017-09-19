@@ -24,17 +24,6 @@ trait DynamicObjectsTrait
     protected static $dynamicProperties = array();
 
     /**
-     * Create an anonymous class.
-     *
-     * @return DynamicObject
-     */
-    public static function createDynamicClass()
-    {
-        return new class extends DynamicObject {
-        };
-    }
-
-    /**
      * Add a dynamic property.
      *
      * @param string $name
