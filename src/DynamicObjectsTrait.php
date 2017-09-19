@@ -177,10 +177,8 @@ trait DynamicObjectsTrait
      */
     public static function getDynamicObjectCacheProvider()
     {
-        if (!isset(self::$cache)) {
-            if (class_exists('\Symfony\Component\Cache\Simple\ArrayCache')) {
-                self::setDynamicObjectCacheProvider(new ArrayCache());
-            }
+        if (!(self::$cache instanceof CacheInterface)) {
+            self::setDynamicObjectCacheProvider(new ArrayCache());
         }
 
         return self::$cache;
@@ -206,20 +204,22 @@ trait DynamicObjectsTrait
      *
      * @return mixed|null
      *   The return of the closure.
+     *
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function doDynamicRequest(\Closure $func, array $parameters = [], $memoize = false)
     {
-        $cacheid = spl_object_hash($func);
+        $cacheid = spl_object_hash($func).sha1(json_encode($parameters));
 
-        if (true === $memoize && self::getDynamicObjectCacheProvider() instanceof CacheInterface) {
-            if ($cache = self::getDynamicObjectCacheProvider()->get($cacheid)) {
+        if (($cache = self::getDynamicObjectCacheProvider()) && true === $memoize) {
+            if ($cache = $cache->get($cacheid)) {
                 return $cache;
             }
         }
 
         $result = call_user_func_array($func, $parameters);
 
-        if (true === $memoize && self::getDynamicObjectCacheProvider() instanceof CacheInterface) {
+        if (($cache = self::getDynamicObjectCacheProvider()) && true === $memoize) {
             self::getDynamicObjectCacheProvider()->set($cacheid, $result);
         }
 
