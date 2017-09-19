@@ -173,7 +173,7 @@ trait DynamicObjectsTrait
      */
     public function doDynamicRequest(\Closure $func, array $parameters = [], $memoize = false)
     {
-        if (!class_exists('\drupol\Memoize\Memoize')) {
+        if (!class_exists('\drupol\Memoize\Memoize') || false === $memoize) {
             $memoize = false;
         }
 
