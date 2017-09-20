@@ -112,8 +112,8 @@ trait DynamicObjectsTrait
      *
      * @param $name
      *   The method name.
-     * @return mixed|null
-     *   The method if it exists, null otherwise.
+     * @return array|null
+     *   The method data if it exists, null otherwise.
      */
     public static function getDynamicMethod($name)
     {
