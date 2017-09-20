@@ -16,7 +16,7 @@
         "role": "Author"
     }],
     "require": {
-        "php": ">=5.4.0",
+        "php": ">=5.5.9",
         "drupol/memoize": "^1.0"
     },
     "autoload": {
