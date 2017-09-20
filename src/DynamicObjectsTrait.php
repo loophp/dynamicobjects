@@ -117,7 +117,7 @@ trait DynamicObjectsTrait
      */
     public static function getDynamicMethod($name)
     {
-        return ( static::hasDynamicMethod($name) ) ?
+        return (static::hasDynamicMethod($name)) ?
             static::$dynamicMethods[get_called_class()][$name] : null;
     }
 

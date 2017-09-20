@@ -12,7 +12,4 @@ class TestObjectParentSpec extends ObjectBehavior
     {
         $this->shouldHaveType(TestObjectParent::class);
     }
-
-
-
 }
