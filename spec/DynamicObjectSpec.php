@@ -48,6 +48,10 @@ class DynamicObjectSpec extends ObjectBehavior
         $this::addDynamicMethod('hello', function() {return 'world';});
         $this::hasDynamicMethod('hello')->shouldBe(TRUE);
         $this->hello()->shouldBe('world');
+
+        $this::addDynamicMethod('goodbye', function() {return 'cruel world';}, false, true);
+        $this::hasDynamicMethod('goodbye')->shouldBe(TRUE);
+        $this::goodbye()->shouldBe('cruel world');
     }
 
     public function it_can_detect_if_a_dynamic_method_has_been_added() {
@@ -57,6 +61,7 @@ class DynamicObjectSpec extends ObjectBehavior
 
     public function it_can_return_appropriate_values_for_a_method() {
         $this->shouldThrow(new \BadMethodCallException(sprintf('Undefined method: %s().', 'undefinedMethod')))->during('undefinedMethod');
+        $this->shouldThrow(new \BadMethodCallException(sprintf('Undefined static method: %s().', 'undefinedMethod')))->during('__callStatic', ['undefinedMethod']);
     }
 
     public function it_can_clear_dynamic_methods() {

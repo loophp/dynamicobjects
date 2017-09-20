@@ -13,6 +13,7 @@ Create and manage dynamic properties and methods on a PHP object.
 
 ## Features
 
+* Allows you to add regular or static methods and properties to an existing object,
 * Can be used by extending the DynamicObject object or as a trait, on a real or anonymous class,
 * Can memoize methods results and/or properties if they are callable,
 * The caching object use CacheInterface and can be injected.
@@ -127,8 +128,10 @@ DynamicObjectsTrait::addDynamicProperty($name, $value, $memoize = false);
  *   The method.
  * @param bool $memoize
  *   Memoize parameter.
+ * @param bool $static
+ *   Static flag parameter.
  */
-DynamicObjectsTrait::addDynamicMethod($name, $func, $memoize = false);
+DynamicObjectsTrait::addDynamicMethod($name, $func, $memoize = false, $static = false);
 ```
 ```php
 /**

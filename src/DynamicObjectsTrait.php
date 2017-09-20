@@ -36,9 +36,9 @@ trait DynamicObjectsTrait
     public static function addDynamicProperty($name, $value, $memoize = false)
     {
         static::$dynamicProperties[get_called_class()][$name] = [
-          'name' => $name,
-          'factory' => $value,
-          'memoize' => $memoize,
+            'name' => $name,
+            'factory' => $value,
+            'memoize' => $memoize,
         ];
     }
 
@@ -51,13 +51,16 @@ trait DynamicObjectsTrait
      *   The method.
      * @param bool $memoize
      *   Memoize parameter.
+     * @param bool $static
+     *   Static flag parameter.
      */
-    public static function addDynamicMethod($name, \Closure $func, $memoize = false)
+    public static function addDynamicMethod($name, \Closure $func, $memoize = false, $static = false)
     {
         static::$dynamicMethods[get_called_class()][$name] = [
-          'name' => $name,
-          'factory' => $func,
-          'memoize' => $memoize,
+            'name' => $name,
+            'factory' => $func,
+            'memoize' => $memoize,
+            'static' => $static,
         ];
     }
 
@@ -115,7 +118,7 @@ trait DynamicObjectsTrait
     public static function getDynamicMethod($name)
     {
         return ( static::hasDynamicMethod($name) ) ?
-          static::$dynamicMethods[get_called_class()][$name] : null;
+            static::$dynamicMethods[get_called_class()][$name] : null;
     }
 
     /**
@@ -193,8 +196,7 @@ trait DynamicObjectsTrait
      */
     public function __call($method, array $parameters = array())
     {
-        if (static::hasDynamicMethod($method)) {
-            $data = static::getDynamicMethod($method);
+        if ($data = static::getDynamicMethod($method)) {
             return $this->doDynamicRequest($data['factory'], $parameters, $data['memoize']);
         }
 
@@ -202,14 +204,33 @@ trait DynamicObjectsTrait
     }
 
     /**
+     * @param $method
+     * @param array $parameters
+     *
+     * @return mixed
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    public static function __callStatic($method, array $parameters = array())
+    {
+        $instance = new static();
+
+        if ($data = static::getDynamicMethod($method)) {
+            if (true == $data['static']) {
+                return $instance->doDynamicRequest($data['factory'], $parameters, $data['memoize']);
+            }
+        }
+
+        throw new \BadMethodCallException(sprintf('Undefined static method: %s().', $method));
+    }
+
+    /**
      * {inheritdoc}
      */
     public function __get($property)
     {
-        if (static::hasDynamicProperty($property)) {
-            $data = static::getDynamicProperty($property);
-
+        if ($data = static::getDynamicProperty($property)) {
             $return = $data['factory'];
+
             if (is_callable($data['factory'])) {
                 $return = $this->doDynamicRequest($data['factory'], [], $data['memoize']);
             }
