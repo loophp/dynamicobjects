@@ -47,11 +47,11 @@ class DynamicObjectSpec extends ObjectBehavior
     public function it_can_create_dynamic_method() {
         $this::addDynamicMethod('hello', function() {return 'world';});
         $this::hasDynamicMethod('hello')->shouldBe(TRUE);
-        $this->hello()->shouldBe('world');
+        $this->__call('hello')->shouldBe($this->hello());
 
         $this::addDynamicMethod('goodbye', function() {return 'cruel world';}, false, true);
         $this::hasDynamicMethod('goodbye')->shouldBe(TRUE);
-        $this::goodbye()->shouldBe('cruel world');
+        $this->__callStatic('goodbye')->shouldBe($this::goodbye());
     }
 
     public function it_can_detect_if_a_dynamic_method_has_been_added() {
