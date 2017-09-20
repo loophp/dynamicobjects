@@ -1,6 +1,7 @@
 [![Build Status](https://www.travis-ci.org/drupol/dynamicobjects.svg?branch=master)](https://www.travis-ci.org/drupol/dynamicobjects)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/drupol/dynamicobjects/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/drupol/dynamicobjects/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/drupol/dynamicobjects/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/drupol/dynamicobjects/?branch=master)
+[![StyleCI](https://styleci.io/repos/103787075/shield?branch=master)](https://styleci.io/repos/103787075)
 [![Latest Stable Version](https://poser.pugx.org/drupol/dynamicobjects/v/stable)](https://packagist.org/packages/drupol/dynamicobjects)
 [![Total Downloads](https://poser.pugx.org/drupol/dynamicobjects/downloads)](https://packagist.org/packages/drupol/dynamicobjects)
 [![License](https://poser.pugx.org/drupol/dynamicobjects/license)](https://packagist.org/packages/drupol/dynamicobjects)
