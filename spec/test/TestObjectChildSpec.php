@@ -8,17 +8,18 @@ use Prophecy\Argument;
 
 class TestObjectChildSpec extends ObjectBehavior
 {
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(TestObjectChild::class);
     }
 
-    public function it_can_call_the_parent_to_get_a_property() {
+    public function it_can_call_the_parent_to_get_a_property()
+    {
         $this->property->shouldBe('hello');
     }
 
-    public function it_can_call_the_parent_to_get_a_method() {
+    public function it_can_call_the_parent_to_get_a_method()
+    {
         $this->customMethod()->shouldBe('hello world');
     }
-
 }
