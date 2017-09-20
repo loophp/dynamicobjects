@@ -155,5 +155,9 @@ class DynamicObjectSpec extends ObjectBehavior
 
         $this->barfoo()->shouldBe('foobar');
         $this->barbaz()->shouldBe('bazbar');
+
+        $this->shouldThrow(new \InvalidArgumentException(
+           'DynamicObjectsTrait::extend() requires a callable or a file that returns one.'
+        ))->during('extend', [__DIR__ . '/fixtures/unexistent.php']);
     }
 }
