@@ -134,4 +134,22 @@ class DynamicObjectSpec extends ObjectBehavior
         }, false);
         $this->hello()->shouldNotBe($this->hello());
     }
+
+    public function it_can_be_extended()
+    {
+        $extensions = function($object) {
+            $object::addDynamicMethod('foo', function () {return 'bar';});
+            $object::addDynamicMethod('bar', function () {return 'foo';});
+        };
+
+        $this->extend($extensions);
+
+        $this->foo()->shouldBe('bar');
+        $this->bar()->shouldBe('foo');
+
+        $this->extend(__DIR__ . '/fixtures/extensions.php');
+
+        $this->barfoo()->shouldBe('foobar');
+        $this->barbaz()->shouldBe('bazbar');
+    }
 }

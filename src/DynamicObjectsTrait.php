@@ -188,6 +188,33 @@ trait DynamicObjectsTrait
     }
 
     /**
+     * Extend the dynamic object.
+     *
+     * @param $extensions
+     *   A file that returns a callable or a callable.
+     *
+     * @return $this
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function extend($extensions)
+    {
+        if (is_string($extensions) && file_exists($extensions)) {
+            $extensions = include $extensions;
+        }
+
+        if (is_callable($extensions)) {
+            call_user_func($extensions, $this);
+
+            return $this;
+        }
+
+        throw new \InvalidArgumentException(
+            'DynamicObjectsTrait::extend() requires a callable or a file that returns one.'
+        );
+    }
+
+    /**
      * @param $method
      * @param array $parameters
      *
