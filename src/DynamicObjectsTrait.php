@@ -202,14 +202,14 @@ trait DynamicObjectsTrait
     /**
      * Extend the dynamic object.
      *
-     * @param $extensions
+     * @param mixed $extensions
      *   A file that returns a callable or a callable.
      *
      * @return $this
      *
      * @throws \InvalidArgumentException
      */
-    public function extend($extensions)
+    public function extend($extensions = null)
     {
         if (is_string($extensions) && file_exists($extensions)) {
             $extensions = include $extensions;
@@ -218,6 +218,10 @@ trait DynamicObjectsTrait
         if (is_callable($extensions)) {
             call_user_func($extensions, $this);
 
+            return $this;
+        }
+
+        if (is_null($extensions)) {
             return $this;
         }
 
