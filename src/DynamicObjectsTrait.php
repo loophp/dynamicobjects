@@ -36,7 +36,7 @@ trait DynamicObjectsTrait
     public static function addDynamicProperty($names, $value, $memoize = false)
     {
         if (!is_array($names)) {
-            $names = array($names);
+            $names = [$names];
         }
 
         foreach ($names as $property) {
@@ -63,7 +63,7 @@ trait DynamicObjectsTrait
     public static function addDynamicMethod($names, \Closure $func, $memoize = false, $static = false)
     {
         if (!is_array($names)) {
-            $names = array($names);
+            $names = [$names];
         }
 
         foreach ($names as $method) {
