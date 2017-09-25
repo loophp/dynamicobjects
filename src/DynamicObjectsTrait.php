@@ -26,27 +26,33 @@ trait DynamicObjectsTrait
     /**
      * Add a dynamic property.
      *
-     * @param string $name
-     *   The property name.
+     * @param string|array $names
+     *   The property name or an array of property names.
      * @param mixed $value
      *   The property value.
      * @param bool $memoize
      *   Memoize parameter.
      */
-    public static function addDynamicProperty($name, $value, $memoize = false)
+    public static function addDynamicProperty($names, $value, $memoize = false)
     {
-        static::$dynamicProperties[get_called_class()][$name] = [
-            'name' => $name,
-            'factory' => $value,
-            'memoize' => $memoize,
-        ];
+        if (!is_array($names)) {
+            $names = array($names);
+        }
+
+        foreach ($names as $property) {
+            static::$dynamicProperties[get_called_class()][$property] = [
+                'name' => $property,
+                'factory' => $value,
+                'memoize' => $memoize,
+            ];
+        }
     }
 
     /**
      * Add a dynamic method.
      *
-     * @param $name
-     *   The method name.
+     * @param string|array $names
+     *   The method name or an array of method names.
      * @param \Closure $func
      *   The method.
      * @param bool $memoize
@@ -54,14 +60,20 @@ trait DynamicObjectsTrait
      * @param bool $static
      *   Static flag parameter.
      */
-    public static function addDynamicMethod($name, \Closure $func, $memoize = false, $static = false)
+    public static function addDynamicMethod($names, \Closure $func, $memoize = false, $static = false)
     {
-        static::$dynamicMethods[get_called_class()][$name] = [
-            'name' => $name,
-            'factory' => $func,
-            'memoize' => $memoize,
-            'static' => $static,
-        ];
+        if (!is_array($names)) {
+            $names = array($names);
+        }
+
+        foreach ($names as $method) {
+            static::$dynamicMethods[get_called_class()][$method] = [
+                'name' => $method,
+                'factory' => $func,
+                'memoize' => $memoize,
+                'static' => $static,
+            ];
+        }
     }
 
     /**

@@ -20,6 +20,11 @@ class DynamicObjectSpec extends ObjectBehavior
         $this->hello->shouldBe('world');
         $this->hello = 'foo';
         $this->hello->shouldBe('foo');
+
+        $this::addDynamicProperty(['goodafteroon', 'goodbye'], 'world');
+        $this::hasDynamicProperty('goodafteroon')->shouldBe(true);
+        $this::hasDynamicProperty('goodbye')->shouldBe(true);
+        $this->goodbye->shouldBe($this->goodafteroon);
     }
 
     public function it_can_detect_if_a_dynamic_property_has_been_added()
@@ -62,6 +67,14 @@ class DynamicObjectSpec extends ObjectBehavior
         }, false, true);
         $this::hasDynamicMethod('goodbye')->shouldBe(true);
         $this->__callStatic('goodbye')->shouldBe($this::goodbye());
+
+
+        $this::addDynamicMethod(['goodafteroon', 'goodbye'], function () {
+            return __FUNCTION__;
+        });
+        $this::hasDynamicMethod('goodafteroon')->shouldBe(true);
+        $this::hasDynamicMethod('goodbye')->shouldBe(true);
+        $this->goodbye()->shouldBe($this->goodafteroon());
     }
 
     public function it_can_detect_if_a_dynamic_method_has_been_added()
