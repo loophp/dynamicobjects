@@ -196,7 +196,14 @@ trait DynamicObjectsTrait
             return $this->memoize($func, $parameters);
         }
 
-        return call_user_func_array($func->bindTo($this, get_called_class()), $parameters);
+        $class = get_called_class();
+        $reflexion = new \ReflectionClass($class);
+
+        if (!$reflexion->isAnonymous()) {
+            $func = $func->bindTo($this, $class);
+        }
+
+        return call_user_func_array($func, $parameters);
     }
 
     /**
