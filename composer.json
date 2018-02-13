@@ -1,7 +1,7 @@
 {
     "name": "drupol/dynamicobjects",
     "description": "Create and manage dynamic properties and methods on a PHP object.",
-    "license": "GPL",
+    "license": "MIT",
     "homepage": "https://github.com/drupol/dynamicobjects",
     "keywords": ["dynamic methods", "dynamic properties"],
     "support": {
