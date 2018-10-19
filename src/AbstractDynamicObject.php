@@ -4,10 +4,8 @@ namespace drupol\DynamicObjects;
 
 /**
  * Class DynamicObject.
- *
- * @package drupol\DynamicObjects
  */
-abstract class AbstractDynamicObject
+abstract class AbstractDynamicObject implements DynamicObjectInterface
 {
     use DynamicObjectsTrait;
 }

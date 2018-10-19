@@ -13,7 +13,7 @@ class DynamicObjectSpec extends ObjectBehavior
         $this->shouldHaveType(DynamicObject::class);
     }
 
-    public function it_can_create_dynamic_property()
+    public function it_can_add_dynamic_property()
     {
         $this::addDynamicProperty('hello', 'world');
         $this::hasDynamicProperty('hello')->shouldBe(true);
@@ -25,6 +25,24 @@ class DynamicObjectSpec extends ObjectBehavior
         $this::hasDynamicProperty('goodafteroon')->shouldBe(true);
         $this::hasDynamicProperty('goodbye')->shouldBe(true);
         $this->goodbye->shouldBe($this->goodafteroon);
+
+        $this::addDynamicProperty('memoize', 'setToFalse');
+        $this->getDynamicProperty('memoize')->shouldReturn(
+            [
+                'name' => 'memoize',
+                'factory' => 'setToFalse',
+                'memoize' => false
+            ]
+        );
+
+        $this::addDynamicProperty('memoize', 'setToTrue', true);
+        $this->getDynamicProperty('memoize')->shouldReturn(
+            [
+                'name' => 'memoize',
+                'factory' => 'setToTrue',
+                'memoize' => true
+            ]
+        );
     }
 
     public function it_can_detect_if_a_dynamic_property_has_been_added()
@@ -54,12 +72,19 @@ class DynamicObjectSpec extends ObjectBehavior
         $this::hasDynamicProperty('hello')->shouldBe(false);
     }
 
-    public function it_can_create_dynamic_method()
+    public function it_can_add_dynamic_method()
     {
-        $this::addDynamicMethod('hello', function () {
+        $closure = function () {
             return 'world';
-        });
+        };
+        $this::addDynamicMethod('hello', $closure);
         $this::hasDynamicMethod('hello')->shouldBe(true);
+        $this->getDynamicMethod('hello')->shouldReturn([
+            'name' => 'hello',
+            'factory' => $closure,
+            'memoize' => false,
+            'static' => false,
+        ]);
         $this->__call('hello')->shouldBe($this->hello());
 
         $this::addDynamicMethod('goodbye', function () {
@@ -68,13 +93,55 @@ class DynamicObjectSpec extends ObjectBehavior
         $this::hasDynamicMethod('goodbye')->shouldBe(true);
         $this->__callStatic('goodbye')->shouldBe($this::goodbye());
 
-
         $this::addDynamicMethod(['goodafteroon', 'goodbye'], function () {
             return __FUNCTION__;
         });
         $this::hasDynamicMethod('goodafteroon')->shouldBe(true);
         $this::hasDynamicMethod('goodbye')->shouldBe(true);
         $this->goodbye()->shouldBe($this->goodafteroon());
+
+        $this::addDynamicMethod('random', function () {
+            return uniqid();
+        });
+        $this->random()->shouldNotBe($this->random());
+
+        $this::addDynamicMethod('random', function () {
+            return true;
+        }, true);
+        $this->random()->shouldReturn(true);
+
+        $this::addDynamicMethod('teststaticdefault', function () {
+            return 'teststatic';
+        }, false);
+        $this->teststaticdefault()->shouldReturn('teststatic');
+        $this->shouldThrow('\Exception')->during('__callStatic', ['teststaticdefault']);
+
+        $this::addDynamicMethod('teststaticfalse', function () {
+            return 'teststatic';
+        }, false, false);
+        $this->teststaticfalse()->shouldReturn('teststatic');
+        $this->shouldThrow('\Exception')->during('__callStatic', ['teststaticfalse']);
+
+        $this::addDynamicMethod('teststatictrue', function () {
+            return 'teststatic';
+        }, false, true);
+        $this->teststatictrue()->shouldReturn('teststatic');
+        $this->shouldNotThrow('\Exception')->during('__callStatic', ['teststatictrue']);
+    }
+
+    public function it_can_do_dynamic_request()
+    {
+        $closure = function ($input) {
+            return $input;
+        };
+        $this::addDynamicMethod('echo', $closure);
+        $this->doDynamicRequest($closure, ['oh oh oh'])->shouldReturn('oh oh oh');
+
+        $closure = function ($input) {
+            return $input . uniqid();
+        };
+        $this::addDynamicMethod('echo', $closure);
+        $this->doDynamicRequest($closure, ['oh oh oh'])->shouldNotBe($this->doDynamicRequest($closure, ['oh oh oh']));
     }
 
     public function it_can_detect_if_a_dynamic_method_has_been_added()
@@ -159,20 +226,47 @@ class DynamicObjectSpec extends ObjectBehavior
             });
         };
 
-        $this->extend($extensions);
+        $this
+            ->extend($extensions)
+            ->shouldReturn($this);
 
         $this->foo()->shouldBe('bar');
         $this->bar()->shouldBe('foo');
 
-        $this->extend(__DIR__ . '/fixtures/extensions.php');
+        $this->extend('./spec/fixtures/extensions.php');
 
         $this->barfoo()->shouldBe('foobar');
         $this->barbaz()->shouldBe('bazbar');
 
-        $this->extend(null)->shouldBe($this);
-
         $this->shouldThrow(new \InvalidArgumentException(
            'DynamicObjectsTrait::extend() requires a callable or a file that returns one.'
-        ))->during('extend', [__DIR__ . '/fixtures/unexistent.php']);
+        ))->during('extend', ['./spec/fixtures/unexistent.php']);
+    }
+
+    public function it_can_work_with_anonymous_classes()
+    {
+        $closure1 = function ($string) {
+            return $string;
+        };
+
+        $boo = new class extends DynamicObject {
+            private $foo;
+        };
+        $boo::addDynamicMethod('hello', $closure1);
+
+        $closure2 = function () {
+            return 'hello';
+        };
+        $this->doDynamicRequest($closure2, [])->shouldReturn($boo->doDynamicRequest($closure1, ['hello']));
+    }
+
+    public function it_can_add_a_callable()
+    {
+        $this
+            ->addDynamicMethod('alias', 'strtoupper');
+
+        $this
+            ->alias('hello')
+            ->shouldReturn('HELLO');
     }
 }
