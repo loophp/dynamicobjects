@@ -6,8 +6,6 @@ use drupol\Memoize\MemoizeTrait;
 
 /**
  * Trait DynamicObjectsTrait.
- *
- * @package drupol\DynamicObjects
  */
 trait DynamicObjectsTrait
 {
@@ -16,12 +14,12 @@ trait DynamicObjectsTrait
     /**
      * @var array
      */
-    protected static $dynamicMethods = array();
+    protected static $dynamicMethods = [];
 
     /**
      * @var array
      */
-    protected static $dynamicProperties = array();
+    protected static $dynamicProperties = [];
 
     /**
      * Add a dynamic property.
@@ -35,12 +33,8 @@ trait DynamicObjectsTrait
      */
     public static function addDynamicProperty($names, $value, $memoize = false)
     {
-        if (!is_array($names)) {
-            $names = [$names];
-        }
-
-        foreach ($names as $property) {
-            static::$dynamicProperties[get_called_class()][$property] = [
+        foreach ((array) $names as $property) {
+            static::$dynamicProperties[\get_called_class()][$property] = [
                 'name' => $property,
                 'factory' => $value,
                 'memoize' => $memoize,
@@ -53,23 +47,21 @@ trait DynamicObjectsTrait
      *
      * @param string|array $names
      *   The method name or an array of method names.
-     * @param \Closure $func
+     * @param callable $callable
      *   The method.
      * @param bool $memoize
      *   Memoize parameter.
      * @param bool $static
      *   Static flag parameter.
      */
-    public static function addDynamicMethod($names, \Closure $func, $memoize = false, $static = false)
+    public static function addDynamicMethod($names, callable $callable, $memoize = false, $static = false)
     {
-        if (!is_array($names)) {
-            $names = [$names];
-        }
+        $class = \get_called_class();
 
-        foreach ($names as $method) {
-            static::$dynamicMethods[get_called_class()][$method] = [
-                'name' => $method,
-                'factory' => $func,
+        foreach ((array) $names as $method_name) {
+            static::$dynamicMethods[$class][$method_name] = [
+                'name' => $method_name,
+                'factory' => $callable,
                 'memoize' => $memoize,
                 'static' => $static,
             ];
@@ -86,7 +78,7 @@ trait DynamicObjectsTrait
      */
     public static function hasDynamicProperty($name)
     {
-        return isset(static::$dynamicProperties[get_called_class()][$name]);
+        return isset(static::$dynamicProperties[\get_called_class()][$name]);
     }
 
     /**
@@ -99,30 +91,28 @@ trait DynamicObjectsTrait
      */
     public static function hasDynamicMethod($name)
     {
-        return isset(static::$dynamicMethods[get_called_class()][$name]);
+        return isset(static::$dynamicMethods[\get_called_class()][$name]);
     }
 
     /**
      * Get a dynamic property.
      *
-     * @param $name
+     * @param string $name
      *   The property name.
      * @return mixed|null
      *   The property value if it exists, null otherwise.
      */
     public static function getDynamicProperty($name)
     {
-        if (static::hasDynamicProperty($name)) {
-            return static::$dynamicProperties[get_called_class()][$name];
-        }
-
-        return null;
+        return (static::hasDynamicProperty($name)) ?
+            static::$dynamicProperties[\get_called_class()][$name] :
+            null;
     }
 
     /**
      * Get a dynamic method.
      *
-     * @param $name
+     * @param string $name
      *   The method name.
      * @return array|null
      *   The method data if it exists, null otherwise.
@@ -130,7 +120,8 @@ trait DynamicObjectsTrait
     public static function getDynamicMethod($name)
     {
         return (static::hasDynamicMethod($name)) ?
-            static::$dynamicMethods[get_called_class()][$name] : null;
+            static::$dynamicMethods[\get_called_class()][$name] :
+            null;
     }
 
     /**
@@ -138,7 +129,7 @@ trait DynamicObjectsTrait
      */
     public static function clearDynamicProperties()
     {
-        static::$dynamicProperties[get_called_class()] = array();
+        static::$dynamicProperties[\get_called_class()] = [];
     }
 
     /**
@@ -146,7 +137,7 @@ trait DynamicObjectsTrait
      */
     public static function clearDynamicMethods()
     {
-        static::$dynamicMethods[get_called_class()] = array();
+        static::$dynamicMethods[\get_called_class()] = [];
     }
 
     /**
@@ -157,7 +148,7 @@ trait DynamicObjectsTrait
      */
     public static function removeDynamicProperty($name)
     {
-        unset(static::$dynamicProperties[get_called_class()][$name]);
+        unset(static::$dynamicProperties[\get_called_class()][$name]);
     }
 
     /**
@@ -168,67 +159,58 @@ trait DynamicObjectsTrait
      */
     public static function removeDynamicMethod($name)
     {
-        unset(static::$dynamicMethods[get_called_class()][$name]);
+        unset(static::$dynamicMethods[\get_called_class()][$name]);
     }
 
     /**
      * Execute a closure.
      *
-     * @param \Closure $func
-     *   The closure.
+     * @param callable $callable
+     *   The callable.
      * @param array $parameters
      *   The closure's parameters.
      * @param bool $memoize
-     *   The memoize parameter.
      *
      * @return mixed|null
      *   The return of the closure.
-     *
-     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
-    public function doDynamicRequest(\Closure $func, array $parameters = [], $memoize = false)
+    public function doDynamicRequest(callable $callable, array $parameters = [], $memoize = false)
     {
-        if (!class_exists('\drupol\Memoize\Memoize') || false === $memoize) {
-            $memoize = false;
+        if (true == $memoize) {
+            return $this->memoize($callable, $parameters);
         }
 
-        if (true === $memoize) {
-            return $this->memoize($func, $parameters);
-        }
-
-        $class = get_called_class();
+        $class = \get_called_class();
         $reflexion = new \ReflectionClass($class);
 
-        if (!$reflexion->isAnonymous()) {
-            $func = $func->bindTo($this, $class);
+        if ($callable instanceof \Closure) {
+            if (!$reflexion->isAnonymous()) {
+                $callable = $callable->bindTo($this, $class);
+            }
         }
 
-        return call_user_func_array($func, $parameters);
+        return $callable(...$parameters);
     }
 
     /**
      * Extend the dynamic object.
      *
-     * @param mixed $extensions
+     * @param string|callable $extensions
      *   A file that returns a callable or a callable.
      *
      * @return $this
      *
      * @throws \InvalidArgumentException
      */
-    public function extend($extensions = null)
+    public function extend($extensions)
     {
-        if (is_string($extensions) && file_exists($extensions)) {
+        if (\is_string($extensions) && \file_exists($extensions)) {
             $extensions = include $extensions;
         }
 
-        if (is_callable($extensions)) {
-            call_user_func($extensions, $this);
+        if ($extensions instanceof \Closure) {
+            $extensions($this);
 
-            return $this;
-        }
-
-        if (is_null($extensions)) {
             return $this;
         }
 
@@ -238,13 +220,17 @@ trait DynamicObjectsTrait
     }
 
     /**
-     * @param $method
+     * {@inheritdoc}
+     *
+     * @param string $method
+     *   The method name.
      * @param array $parameters
+     *   The parameters passed to the method.
      *
      * @return mixed
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     *   The result of the call.
      */
-    public function __call($method, array $parameters = array())
+    public function __call($method, array $parameters = [])
     {
         if ($data = static::getDynamicMethod($method)) {
             return $this->doDynamicRequest($data['factory'], $parameters, $data['memoize']);
@@ -254,20 +240,21 @@ trait DynamicObjectsTrait
     }
 
     /**
-     * @param $method
+     * {@inheritdoc}
+     *
+     * @param string $method
+     *   The method name.
      * @param array $parameters
+     *   The method parameters.
      *
      * @return mixed
-     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
-    public static function __callStatic($method, array $parameters = array())
+    public static function __callStatic($method, array $parameters = [])
     {
         $instance = new static();
 
-        if ($data = static::getDynamicMethod($method)) {
-            if (true == $data['static']) {
-                return $instance->doDynamicRequest($data['factory'], $parameters, $data['memoize']);
-            }
+        if (null !== ($data = static::getDynamicMethod($method)) && true == $data['static']) {
+            return $instance->doDynamicRequest($data['factory'], $parameters, $data['memoize']);
         }
 
         throw new \BadMethodCallException(sprintf('Undefined static method: %s().', $method));
@@ -275,17 +262,20 @@ trait DynamicObjectsTrait
 
     /**
      * {inheritdoc}
+     *
+     * @param string $property
+     *   The property name.
+     *
+     * @return mixed
      */
     public function __get($property)
     {
         if ($data = static::getDynamicProperty($property)) {
-            $return = $data['factory'];
-
-            if (is_callable($data['factory'])) {
-                $return = $this->doDynamicRequest($data['factory'], [], $data['memoize']);
+            if ($data['factory'] instanceof \Closure) {
+                return $this->doDynamicRequest($data['factory'], [], $data['memoize']);
             }
 
-            return $return;
+            return $data['factory'];
         }
 
         throw new \DomainException(sprintf('Undefined property: %s.', $property));
@@ -293,6 +283,11 @@ trait DynamicObjectsTrait
 
     /**
      * {inheritdoc}
+     *
+     * @param string $property
+     *   The property name.
+     * @param mixed $value
+     *   The property value.
      */
     public function __set($property, $value)
     {
