@@ -1,26 +1,23 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace drupol\DynamicObjects\test;
 
 class ExampleClass
 {
     public $publicProperty = 'publicProperty';
-    private $privateProperty = 'privateProperty';
     protected $protectedProperty = 'protectedProperty';
+    private $privateProperty = 'privateProperty';
 
     public function publicMethod()
     {
         return 'publicMethod';
     }
 
-    private function privateMethod()
+    public function renderMethods()
     {
-        return 'privateMethod';
-    }
-
-    protected function protectedMethod()
-    {
-        return 'protectedMethod';
+        return $this->publicMethod() . $this->privateMethod() . $this->protectedMethod();
     }
 
     public function renderProperties()
@@ -28,8 +25,13 @@ class ExampleClass
         return $this->publicProperty . $this->privateProperty . $this->protectedProperty;
     }
 
-    public function renderMethods()
+    protected function protectedMethod()
     {
-        return $this->publicMethod() . $this->privateMethod() . $this->protectedMethod();
+        return 'protectedMethod';
+    }
+
+    private function privateMethod()
+    {
+        return 'privateMethod';
     }
 }

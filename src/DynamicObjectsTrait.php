@@ -2,15 +2,11 @@
 
 namespace drupol\DynamicObjects;
 
-use drupol\Memoize\MemoizeTrait;
-
 /**
  * Trait DynamicObjectsTrait.
  */
 trait DynamicObjectsTrait
 {
-    use MemoizeTrait;
-
     /**
      * @var array
      */
@@ -22,114 +18,123 @@ trait DynamicObjectsTrait
     protected static $dynamicProperties = [];
 
     /**
-     * Add a dynamic property.
+     * {@inheritdoc}
      *
-     * @param string|array $names
-     *   The property name or an array of property names.
-     * @param mixed $value
-     *   The property value.
-     * @param bool $memoize
-     *   Memoize parameter.
+     * @param string $method
+     *   The method name
+     * @param array $parameters
+     *   The parameters passed to the method
+     *
+     * @return mixed
+     *   The result of the call
      */
-    public static function addDynamicProperty($names, $value, $memoize = false)
+    public function __call($method, array $parameters = [])
     {
-        foreach ((array) $names as $property) {
-            static::$dynamicProperties[\get_called_class()][$property] = [
-                'name' => $property,
-                'factory' => $value,
-                'memoize' => $memoize,
-            ];
+        if ($data = static::getDynamicMethod($method)) {
+            return $this->doDynamicRequest($data['factory'], $parameters);
+        }
+
+        throw new \BadMethodCallException(\sprintf('Undefined method: %s().', $method));
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @param string $method
+     *   The method name
+     * @param array $parameters
+     *   The method parameters
+     *
+     * @return mixed
+     */
+    public static function __callStatic($method, array $parameters = [])
+    {
+        $instance = new static();
+
+        if (null !== ($data = static::getDynamicMethod($method)) && true === $data['static']) {
+            return $instance->doDynamicRequest($data['factory'], $parameters);
+        }
+
+        throw new \BadMethodCallException(\sprintf('Undefined static method: %s().', $method));
+    }
+
+    /**
+     * {inheritdoc}.
+     *
+     * @param string $property
+     *   The property name
+     *
+     * @throws \ReflectionException
+     *
+     * @return mixed
+     */
+    public function __get($property)
+    {
+        if ($data = static::getDynamicProperty($property)) {
+            if ($data['factory'] instanceof \Closure) {
+                return $this->doDynamicRequest($data['factory'], []);
+            }
+
+            return $data['factory'];
+        }
+
+        throw new \DomainException(\sprintf('Undefined property: %s.', $property));
+    }
+
+    /**
+     * {inheritdoc}.
+     *
+     * @param string $property
+     *   The property name
+     * @param mixed $value
+     *   The property value
+     */
+    public function __set($property, $value)
+    {
+        if (static::hasDynamicProperty($property)) {
+            static::addDynamicProperty($property, $value);
         }
     }
 
     /**
      * Add a dynamic method.
      *
-     * @param string|array $names
-     *   The method name or an array of method names.
+     * @param array|string $names
+     *   The method name or an array of method names
      * @param callable $callable
-     *   The method.
-     * @param bool $memoize
-     *   Memoize parameter.
+     *   The method
      * @param bool $static
-     *   Static flag parameter.
+     *   Static flag parameter
      */
-    public static function addDynamicMethod($names, callable $callable, $memoize = false, $static = false)
+    public static function addDynamicMethod($names, callable $callable, $static = false)
     {
-        $class = \get_called_class();
+        $class = static::class;
 
         foreach ((array) $names as $method_name) {
             static::$dynamicMethods[$class][$method_name] = [
                 'name' => $method_name,
                 'factory' => $callable,
-                'memoize' => $memoize,
                 'static' => $static,
             ];
         }
     }
 
     /**
-     * Check if a dynamic property exists.
+     * Add a dynamic property.
      *
-     * @param string $name
-     *   The property name.
-     * @return bool
-     *   True if the property exists, false otherwise.
+     * @param array|string $names
+     *   The property name or an array of property names
+     * @param mixed $value
+     *   The property value
      */
-    public static function hasDynamicProperty($name)
+    public static function addDynamicProperty($names, $value)
     {
-        return isset(static::$dynamicProperties[\get_called_class()][$name]);
-    }
-
-    /**
-     * Check if a dynamic method exists.
-     *
-     * @param string $name
-     *   The property name.
-     * @return bool
-     *   True if the property exists, false otherwise.
-     */
-    public static function hasDynamicMethod($name)
-    {
-        return isset(static::$dynamicMethods[\get_called_class()][$name]);
-    }
-
-    /**
-     * Get a dynamic property.
-     *
-     * @param string $name
-     *   The property name.
-     * @return mixed|null
-     *   The property value if it exists, null otherwise.
-     */
-    public static function getDynamicProperty($name)
-    {
-        return (static::hasDynamicProperty($name)) ?
-            static::$dynamicProperties[\get_called_class()][$name] :
-            null;
-    }
-
-    /**
-     * Get a dynamic method.
-     *
-     * @param string $name
-     *   The method name.
-     * @return array|null
-     *   The method data if it exists, null otherwise.
-     */
-    public static function getDynamicMethod($name)
-    {
-        return (static::hasDynamicMethod($name)) ?
-            static::$dynamicMethods[\get_called_class()][$name] :
-            null;
-    }
-
-    /**
-     * Clear dynamic properties.
-     */
-    public static function clearDynamicProperties()
-    {
-        static::$dynamicProperties[\get_called_class()] = [];
+        foreach ((array) $names as $property) {
+            static::$dynamicProperties[static::class][$property] = [
+                'name' => $property,
+                'factory' => $value,
+            ];
+        }
     }
 
     /**
@@ -137,50 +142,33 @@ trait DynamicObjectsTrait
      */
     public static function clearDynamicMethods()
     {
-        static::$dynamicMethods[\get_called_class()] = [];
+        static::$dynamicMethods[static::class] = [];
     }
 
     /**
-     * Remove a dynamic property.
-     *
-     * @param string $name
-     *   The property name.
+     * Clear dynamic properties.
      */
-    public static function removeDynamicProperty($name)
+    public static function clearDynamicProperties()
     {
-        unset(static::$dynamicProperties[\get_called_class()][$name]);
-    }
-
-    /**
-     * Remove a dynamic method.
-     *
-     * @param string $name
-     *   The method name.
-     */
-    public static function removeDynamicMethod($name)
-    {
-        unset(static::$dynamicMethods[\get_called_class()][$name]);
+        static::$dynamicProperties[static::class] = [];
     }
 
     /**
      * Execute a closure.
      *
      * @param callable $callable
-     *   The callable.
+     *   The callable
      * @param array $parameters
-     *   The closure's parameters.
-     * @param bool $memoize
+     *   The closure's parameters
      *
-     * @return mixed|null
-     *   The return of the closure.
+     * @throws \ReflectionException
+     *
+     * @return null|mixed
+     *   The return of the closure
      */
-    public function doDynamicRequest(callable $callable, array $parameters = [], $memoize = false)
+    public function doDynamicRequest(callable $callable, array $parameters = [])
     {
-        if (true == $memoize) {
-            return $this->memoize($callable, $parameters);
-        }
-
-        $class = \get_called_class();
+        $class = static::class;
         $reflexion = new \ReflectionClass($class);
 
         if ($callable instanceof \Closure) {
@@ -195,12 +183,12 @@ trait DynamicObjectsTrait
     /**
      * Extend the dynamic object.
      *
-     * @param string|callable $extensions
-     *   A file that returns a callable or a callable.
-     *
-     * @return $this
+     * @param callable|string $extensions
+     *   A file that returns a callable or a callable
      *
      * @throws \InvalidArgumentException
+     *
+     * @return $this
      */
     public function extend($extensions)
     {
@@ -220,79 +208,84 @@ trait DynamicObjectsTrait
     }
 
     /**
-     * {@inheritdoc}
+     * Get a dynamic method.
      *
-     * @param string $method
-     *   The method name.
-     * @param array $parameters
-     *   The parameters passed to the method.
+     * @param string $name
+     *   The method name
      *
-     * @return mixed
-     *   The result of the call.
+     * @return null|array
+     *   The method data if it exists, null otherwise
      */
-    public function __call($method, array $parameters = [])
+    public static function getDynamicMethod($name)
     {
-        if ($data = static::getDynamicMethod($method)) {
-            return $this->doDynamicRequest($data['factory'], $parameters, $data['memoize']);
-        }
-
-        throw new \BadMethodCallException(sprintf('Undefined method: %s().', $method));
+        return (static::hasDynamicMethod($name)) ?
+            static::$dynamicMethods[static::class][$name] :
+            null;
     }
 
     /**
-     * {@inheritdoc}
+     * Get a dynamic property.
      *
-     * @param string $method
-     *   The method name.
-     * @param array $parameters
-     *   The method parameters.
+     * @param string $name
+     *   The property name
      *
-     * @return mixed
+     * @return null|mixed
+     *   The property value if it exists, null otherwise
      */
-    public static function __callStatic($method, array $parameters = [])
+    public static function getDynamicProperty($name)
     {
-        $instance = new static();
-
-        if (null !== ($data = static::getDynamicMethod($method)) && true == $data['static']) {
-            return $instance->doDynamicRequest($data['factory'], $parameters, $data['memoize']);
-        }
-
-        throw new \BadMethodCallException(sprintf('Undefined static method: %s().', $method));
+        return (static::hasDynamicProperty($name)) ?
+            static::$dynamicProperties[static::class][$name] :
+            null;
     }
 
     /**
-     * {inheritdoc}
+     * Check if a dynamic method exists.
      *
-     * @param string $property
-     *   The property name.
+     * @param string $name
+     *   The property name
      *
-     * @return mixed
+     * @return bool
+     *   True if the property exists, false otherwise
      */
-    public function __get($property)
+    public static function hasDynamicMethod($name)
     {
-        if ($data = static::getDynamicProperty($property)) {
-            if ($data['factory'] instanceof \Closure) {
-                return $this->doDynamicRequest($data['factory'], [], $data['memoize']);
-            }
-
-            return $data['factory'];
-        }
-
-        throw new \DomainException(sprintf('Undefined property: %s.', $property));
+        return isset(static::$dynamicMethods[static::class][$name]);
     }
 
     /**
-     * {inheritdoc}
+     * Check if a dynamic property exists.
      *
-     * @param string $property
-     *   The property name.
-     * @param mixed $value
-     *   The property value.
+     * @param string $name
+     *   The property name
+     *
+     * @return bool
+     *   True if the property exists, false otherwise
      */
-    public function __set($property, $value)
+    public static function hasDynamicProperty($name)
     {
-        if (static::hasDynamicProperty($property)) {
-            static::addDynamicProperty($property, $value);
-        }
+        return isset(static::$dynamicProperties[static::class][$name]);
+    }
+
+    /**
+     * Remove a dynamic method.
+     *
+     * @param string $name
+     *   The method name
+     */
+    public static function removeDynamicMethod($name)
+    {
+        unset(static::$dynamicMethods[static::class][$name]);
+    }
+
+    /**
+     * Remove a dynamic property.
+     *
+     * @param string $name
+     *   The property name
+     */
+    public static function removeDynamicProperty($name)
+    {
+        unset(static::$dynamicProperties[static::class][$name]);
     }
 }

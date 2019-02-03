@@ -16,8 +16,7 @@
         "role": "Author"
     }],
     "require": {
-        "php": ">=5.6",
-        "drupol/memoize": "^1.4"
+        "php": ">=5.6"
     },
     "autoload": {
         "psr-4": {
@@ -30,24 +29,7 @@
         }
     },
     "require-dev": {
-        "codacy/coverage": "^1.4",
-        "drupol/phpspec-annotation": "^1.0",
-        "friendsofphp/php-cs-fixer": "^2.10",
-        "infection/infection": "^0.10.5",
-        "jakub-onderka/php-parallel-lint": "^1.0",
-        "leanphp/phpspec-code-coverage": "^4",
-        "maglnet/composer-require-checker": "^1.1",
-        "monolog/monolog": "^1.0",
-        "php-http/guzzle6-adapter": "^1.1",
-        "phpmd/phpmd": "^2.6",
-        "phpro/grumphp": "^0.14.0",
-        "phpspec/phpspec": "^4",
-        "phpstan/phpstan": "^0.10.3",
-        "roave/security-advisories": "dev-master",
-        "scrutinizer/ocular": "^1.3",
-        "sebastian/phpcpd": "^4.0",
-        "sensiolabs/security-checker": "^4.1",
-        "squizlabs/php_codesniffer": "^3"
+        "drupol/php-conventions": "^1"
     },
     "config": {
         "sort-packages": true
@@ -62,5 +44,10 @@
         "codacy": "./vendor/bin/codacycoverage clover build/logs/clover.xml",
         "scrutinizer": "./vendor/bin/ocular code-coverage:upload --format=php-clover build/logs/clover.xml",
         "bench": "./vendor/bin/phpbench run --report=aggregate --store --precision=3"
+    },
+    "extra": {
+        "grumphp": {
+            "config-default-path": "vendor/drupol/php-conventions/config/php56/grumphp.yml"
+        }
     }
 }

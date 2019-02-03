@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace spec\drupol\DynamicObjects\test;
 
 use drupol\DynamicObjects\test\TestObjectParent;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 class TestObjectParentSpec extends ObjectBehavior
 {

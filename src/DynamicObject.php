@@ -3,7 +3,7 @@
 namespace drupol\DynamicObjects;
 
 /**
- * Class DynamicObject
+ * Class DynamicObject.
  */
 class DynamicObject extends AbstractDynamicObject
 {
