@@ -130,7 +130,7 @@ class DynamicObjectSpec extends ObjectBehavior
         $this->barbaz()->shouldBe('bazbar');
 
         $this->shouldThrow(new \InvalidArgumentException(
-           'DynamicObjectsTrait::extend() requires a callable or a file that returns one.'
+            'DynamicObjectsTrait::extend() requires a callable or a file that returns one.'
         ))->during('extend', ['./spec/fixtures/unexistent.php']);
     }
 
