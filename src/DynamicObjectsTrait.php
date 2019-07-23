@@ -34,7 +34,7 @@ trait DynamicObjectsTrait
             return $this->doDynamicRequest($data['factory'], $parameters);
         }
 
-        throw new \BadMethodCallException(\sprintf('Undefined method: %s().', $method));
+        throw new \BadMethodCallException(sprintf('Undefined method: %s().', $method));
     }
 
     /**
@@ -55,7 +55,7 @@ trait DynamicObjectsTrait
             return $instance->doDynamicRequest($data['factory'], $parameters);
         }
 
-        throw new \BadMethodCallException(\sprintf('Undefined static method: %s().', $method));
+        throw new \BadMethodCallException(sprintf('Undefined static method: %s().', $method));
     }
 
     /**
@@ -78,7 +78,7 @@ trait DynamicObjectsTrait
             return $data['factory'];
         }
 
-        throw new \DomainException(\sprintf('Undefined property: %s.', $property));
+        throw new \DomainException(sprintf('Undefined property: %s.', $property));
     }
 
     /**
@@ -192,7 +192,7 @@ trait DynamicObjectsTrait
      */
     public function extend($extensions)
     {
-        if (\is_string($extensions) && \file_exists($extensions)) {
+        if (\is_string($extensions) && file_exists($extensions)) {
             $extensions = include $extensions;
         }
 

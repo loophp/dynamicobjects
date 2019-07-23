@@ -7,7 +7,9 @@ namespace drupol\DynamicObjects\test;
 class ExampleClass
 {
     public $publicProperty = 'publicProperty';
+
     protected $protectedProperty = 'protectedProperty';
+
     private $privateProperty = 'privateProperty';
 
     public function publicMethod()

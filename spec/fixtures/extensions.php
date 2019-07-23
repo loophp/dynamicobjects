@@ -2,11 +2,11 @@
 
 declare(strict_types = 1);
 
-return function ($object) {
-    $object::addDynamicMethod('barfoo', function () {
+return static function ($object) {
+    $object::addDynamicMethod('barfoo', static function () {
         return 'foobar';
     });
-    $object::addDynamicMethod('barbaz', function () {
+    $object::addDynamicMethod('barbaz', static function () {
         return 'bazbar';
     });
 };
