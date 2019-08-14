@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace spec\drupol\DynamicObjects;
 
@@ -48,7 +48,7 @@ class DynamicObjectSpec extends ObjectBehavior
         $this->goodbye()->shouldBe($this->goodafteroon());
 
         $this::addDynamicMethod('random', static function () {
-            return uniqid();
+            return \uniqid();
         });
         $this->random()->shouldNotBe($this->random());
 
@@ -183,7 +183,7 @@ class DynamicObjectSpec extends ObjectBehavior
         $this->doDynamicRequest($closure, ['oh oh oh'])->shouldReturn('oh oh oh');
 
         $closure = static function ($input) {
-            return $input . uniqid();
+            return $input . \uniqid();
         };
         $this::addDynamicMethod('echo', $closure);
         $this->doDynamicRequest($closure, ['oh oh oh'])->shouldNotBe($this->doDynamicRequest($closure, ['oh oh oh']));
@@ -207,14 +207,14 @@ class DynamicObjectSpec extends ObjectBehavior
 
     public function it_can_return_appropriate_values_for_a_method()
     {
-        $this->shouldThrow(new \BadMethodCallException(sprintf('Undefined method: %s().', 'undefinedMethod')))->during('undefinedMethod');
-        $this->shouldThrow(new \BadMethodCallException(sprintf('Undefined static method: %s().', 'undefinedMethod')))->during('__callStatic', ['undefinedMethod']);
+        $this->shouldThrow(new \BadMethodCallException(\sprintf('Undefined method: %s().', 'undefinedMethod')))->during('undefinedMethod');
+        $this->shouldThrow(new \BadMethodCallException(\sprintf('Undefined static method: %s().', 'undefinedMethod')))->during('__callStatic', ['undefinedMethod']);
     }
 
     public function it_can_return_appropriate_values_for_an_undefined_property()
     {
         $this::getDynamicProperty('undefinedProperty')->shouldBeNull();
-        $this->shouldThrow(new \DomainException(sprintf('Undefined property: %s.', 'undefinedProperty')))->during('__get', ['undefinedProperty']);
+        $this->shouldThrow(new \DomainException(\sprintf('Undefined property: %s.', 'undefinedProperty')))->during('__get', ['undefinedProperty']);
     }
 
     public function it_can_work_with_anonymous_classes()

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 return static function ($object) {
     $object::addDynamicMethod('barfoo', static function () {
